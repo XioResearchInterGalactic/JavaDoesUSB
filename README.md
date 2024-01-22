@@ -66,7 +66,7 @@ import net.codecrete.usb.USB;
 public class EnumerateDevices {
 
     public static void main(String[] args) {
-        for (var device : USB.getAllDevices()) {
+        for (var device : USB.getDevices()) {
             System.out.println(device);
         }
     }
