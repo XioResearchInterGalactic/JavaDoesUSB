@@ -27,7 +27,7 @@ jobs:
       - run:
           name: Build Jar
           command: |
-            mvn clean install -DskipTests -Dgpg.skip -s ./settings.xml -f java-does-usb\pom.xml
+            mvn clean install -DskipTests -Dgpg.skip -s ./settings.xml -f java-does-usb/pom.xml
       - when:
           condition:
             and:
