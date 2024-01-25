@@ -99,6 +99,8 @@ call %JEXTRACT% --source --output ../../src/main/java ^
        --include-typedef DEV_BROADCAST_HDR ^
        --include-struct _DEV_BROADCAST_DEVICEINTERFACE_W ^
        --include-typedef DEV_BROADCAST_DEVICEINTERFACE_W ^
+       --include-constant WM_POWERBROADCAST ^
+       --include-constant PBT_APMRESUMEAUTOMATIC ^
        windows_headers.h
 
 call %JEXTRACT% --source --output ../../src/main/java ^
@@ -142,4 +144,17 @@ call %JEXTRACT% --source --output ../../src/main/java ^
        --header-class-name NtDll ^
        --target-package net.codecrete.usb.windows.gen.ntdll ^
        --include-constant STATUS_UNSUCCESSFUL ^
+       windows_headers.h
+
+call %JEXTRACT% --source --output ../../src/main/java ^
+       -D _AMD64_ -D _M_AMD64=100 -D UNICODE -D _UNICODE ^
+       -I "%SDK_DIR%\um" ^
+       -I "%SDK_DIR%\shared" ^
+       --header-class-name WinUser ^
+       --target-package net.codecrete.usb.windows.gen.winuser ^
+       --include-function RegisterSuspendResumeNotification ^
+       --include-function UnregisterSuspendResumeNotification ^
+       --include-typedef HPOWERNOTIFY ^
+       --include-constant DEVICE_NOTIFY_WINDOW_HANDLE ^
+       --include-constant DEVICE_NOTIFY_CALLBACK ^
        windows_headers.h

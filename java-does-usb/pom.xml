@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>net.codecrete.usb</groupId>
+    <groupId>org.merlyn.usb</groupId>
     <artifactId>java-does-usb</artifactId>
-    <version>0.7.1</version>
+    <version>0.7.2-merlyn-1</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -15,7 +15,7 @@
     </properties>
 
     <name>Java Does USB</name>
-    <url>https://github.com/manuelbl/JavaDoesUSB</url>
+    <url>https://github.com/XioResearchInterGalactic/JavaDoesUSB</url>
     <description>Access USB devices from Java without additional libraries</description>
     <licenses>
         <license>
@@ -30,22 +30,23 @@
             <email>manuel.bleichenbacher@gmail.com</email>
             <url>https://github.com/manuelbl</url>
         </developer>
+        <developer>
+            <name>Xavier Rubio Jansna</name>
+            <email>xjansana@merlyn.org</email>
+            <url>https://github.com/xrubioj-merlyn</url>
+        </developer>
     </developers>
 
     <scm>
-        <connection>scm:git:https://github.com/manuelbl/JavaDoesUSB.git</connection>
-        <developerConnection>scm:git:https://github.com/manuelbl/JavaDoesUSB.git</developerConnection>
-        <url>https://github.com/manuelbl/JavaDoesUSB</url>
+        <connection>scm:git:https://github.com/XioResearchInterGalactic/JavaDoesUSB.git</connection>
+        <developerConnection>scm:git:https://github.com/XioResearchInterGalactic/JavaDoesUSB.git</developerConnection>
+        <url>https://github.com/XioResearchInterGalactic/JavaDoesUSB</url>
     </scm>
 
     <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
         <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>aws</id>
+            <url>https://merlyn-619238747039.d.codeartifact.us-east-1.amazonaws.com/maven/merlyn-artifact-repo/</url>
         </repository>
     </distributionManagement>
 
@@ -127,9 +128,7 @@
                     <version>1.6.13</version>
                     <extensions>true</extensions>
                     <configuration>
-                        <serverId>ossrh</serverId>
-                        <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-                        <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        <serverId>aws</serverId>
                     </configuration>
                 </plugin>
             </plugins>

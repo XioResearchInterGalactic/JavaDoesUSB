@@ -21,6 +21,7 @@ import net.codecrete.usb.windows.gen.usbioctl.USBIoctl;
 import net.codecrete.usb.windows.gen.usbioctl._USB_DESCRIPTOR_REQUEST;
 import net.codecrete.usb.windows.gen.usbioctl._USB_NODE_CONNECTION_INFORMATION_EX;
 import net.codecrete.usb.windows.gen.user32.*;
+import net.codecrete.usb.windows.gen.winuser.WinUser;
 import net.codecrete.usb.windows.winsdk.Kernel32B;
 import net.codecrete.usb.windows.winsdk.User32B;
 
@@ -33,6 +34,8 @@ import java.lang.invoke.MethodType;
 import java.util.*;
 
 import static java.lang.System.Logger.Level.INFO;
+import static java.lang.System.Logger.Level.DEBUG;
+import static java.lang.System.Logger.Level.TRACE;
 import static java.lang.foreign.MemorySegment.NULL;
 import static java.lang.foreign.ValueLayout.*;
 import static net.codecrete.usb.usbstandard.Constants.*;
@@ -105,6 +108,11 @@ public class WindowsUsbDeviceRegistry extends UsbDeviceRegistry {
                 if (notifyHandle.address() == 0)
                     throwLastError(errorState, "internal error (RegisterDeviceNotificationW)");
 
+                // configure system suspend and resume notifications
+                var powerNotifyHandle = WinUser.RegisterSuspendResumeNotification(hwnd, WinUser.DEVICE_NOTIFY_WINDOW_HANDLE());
+                if (powerNotifyHandle.address() == 0)
+                    throwException("internal error (RegisterSuspendResumeNotification)"); // TODO: errorState not captured
+
                 // initial device enumeration
                 enumeratePresentDevices();
 
@@ -151,6 +159,61 @@ public class WindowsUsbDeviceRegistry extends UsbDeviceRegistry {
             }
 
             setInitialDeviceList(deviceList);
+        }
+    }
+
+    @SuppressWarnings("java:S106")
+    private void refreshPresentDevices() {
+
+        LOG.log(DEBUG, "refreshing present devices after device sleep");
+
+        // allow device change notifications to be processed before refreshing
+        try {
+            Thread.sleep(150L);
+        } catch (InterruptedException e) {
+            return;
+        }
+
+        List<UsbDevice> updatedDeviceList = new ArrayList<>();
+        try (var cleanup = new ScopeCleanup();
+             var deviceInfoSet = DeviceInfoSet.ofPresentDevices(GUID_DEVINTERFACE_USB_DEVICE, null)) {
+
+            // ensure all hubs are closed later
+            final var hubHandles = new HashMap<String, MemorySegment>();
+            cleanup.add(() -> hubHandles.forEach((_, handle) -> Kernel32.CloseHandle(handle)));
+
+            // iterate all devices
+            while (deviceInfoSet.next()) {
+
+                var instanceId = deviceInfoSet.getStringProperty(InstanceId);
+                var devicePath = DeviceInfoSet.getDevicePath(instanceId, GUID_DEVINTERFACE_USB_DEVICE);
+
+                try {
+                    updatedDeviceList.add(createDeviceFromDeviceInfo(deviceInfoSet, devicePath, hubHandles));
+                    LOG.log(TRACE, String.format(" - found device: %s", devicePath));
+                } catch (Exception e) {
+                    LOG.log(INFO, String.format("failed to retrieve information about device %s - ignoring device", devicePath), e);
+                }
+            }
+
+            List<UsbDevice> currentDeviceList = getAllDevices();
+            for (UsbDevice device : updatedDeviceList) {
+                if (findDeviceIndex(currentDeviceList, ((UsbDeviceImpl) device).getUniqueId()) < 0) {
+                    addDevice(device);
+                    LOG.log(TRACE, String.format(" - updating device list, adding: %s", device.getSerialNumber()));
+                } else {
+                    LOG.log(TRACE, String.format(" - updating device list, SKIPPING when adding: %s", device.getSerialNumber()));
+                }
+            }
+            for (UsbDevice device : currentDeviceList) {
+                var deviceUniqueId = ((UsbDeviceImpl) device).getUniqueId();
+                if (findDeviceIndex(updatedDeviceList, deviceUniqueId) < 0) {
+                    removeDevice(deviceUniqueId);
+                    LOG.log(TRACE, String.format(" - updating device list, removing: %s", device.getSerialNumber()));
+                } else {
+                    LOG.log(TRACE, String.format(" - updating device list, skipping when removing: %s", device.getSerialNumber()));
+                }
+            }
         }
     }
 
@@ -300,6 +363,15 @@ public class WindowsUsbDeviceRegistry extends UsbDeviceRegistry {
                     onDeviceDisconnected(devicePath);
                 return 0;
             }
+
+        // force refresh the list of devices when returning from sleep
+        } else if (uMsg == User32.WM_POWERBROADCAST() && wParam == User32.PBT_APMRESUMEAUTOMATIC()) {
+
+            var thread = new Thread(this::refreshPresentDevices, "USB refresh device list");
+            thread.setDaemon(true);
+            thread.start();
+
+            return 0;
         }
 
         // default message handling

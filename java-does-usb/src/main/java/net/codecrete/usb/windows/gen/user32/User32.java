@@ -19,6 +19,22 @@ public class User32  {
     public static final AddressLayout C_POINTER = RuntimeHelper.POINTER;
     /**
      * {@snippet :
+     * #define WM_POWERBROADCAST 536
+     * }
+     */
+    public static int WM_POWERBROADCAST() {
+        return (int)536L;
+    }
+    /**
+     * {@snippet :
+     * #define PBT_APMRESUMEAUTOMATIC 18
+     * }
+     */
+    public static int PBT_APMRESUMEAUTOMATIC() {
+        return (int)18L;
+    }
+    /**
+     * {@snippet :
      * #define WM_DEVICECHANGE 537
      * }
      */
