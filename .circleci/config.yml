@@ -2,12 +2,11 @@ version: 2.1
 
 orbs:
   aws-cli: circleci/aws-cli@3.2.0
-  maven: circleci/maven@1.4.1
 
 executors:
   docker-openjdk:
     docker:
-      - image: cimg/openjdk:21.0.0
+      - image: cimg/openjdk:21.0.2
 
 jobs:
   build-jar:
@@ -37,6 +36,16 @@ jobs:
                 name: Publish release
                 command: |
                   mvn clean deploy -DskipTests -Dgpg.skip -s ./settings.xml -f java-does-usb/pom.xml
+      - when:
+          condition:
+            not: { equal: [ main, << pipeline.git.branch >> ] }
+          steps:
+            - run:
+                command: |
+                  mkdir -p ~/artifacts/
+                  cp java-does-usb/target/*.jar ~/artifacts/
+            - store_artifacts:
+                path: ~/artifacts/
 
 workflows:
   ci:
