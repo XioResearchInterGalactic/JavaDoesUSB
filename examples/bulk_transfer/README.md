@@ -39,7 +39,7 @@ $ mvn compile exec:exec
 [INFO] Scanning for projects...
 [INFO] 
 [INFO] --------------< net.codecrete.usb.examples:bulk-transfer >--------------
-[INFO] Building bulk-transfer 0.7.2-merlyn-1
+[INFO] Building bulk-transfer 0.7.2-merlyn-2
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
 [INFO] --- maven-resources-plugin:3.0.2:resources (default-resources) @ bulk-transfer ---
