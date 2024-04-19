@@ -185,8 +185,15 @@ public class WindowsUsbDeviceRegistry extends UsbDeviceRegistry {
             // iterate all devices
             while (deviceInfoSet.next()) {
 
-                var instanceId = deviceInfoSet.getStringProperty(InstanceId);
-                var devicePath = DeviceInfoSet.getDevicePath(instanceId, GUID_DEVINTERFACE_USB_DEVICE);
+                String instanceId = "(unknown)";
+                String devicePath;
+                try {
+                    instanceId = deviceInfoSet.getStringProperty(InstanceId);
+                    devicePath = DeviceInfoSet.getDevicePath(instanceId, GUID_DEVINTERFACE_USB_DEVICE);
+                } catch (Exception e) {
+                    LOG.log(INFO, String.format("failed to retrieve information about device %s - ignoring device", instanceId), e);
+                    continue;
+                }
 
                 try {
                     updatedDeviceList.add(createDeviceFromDeviceInfo(deviceInfoSet, devicePath, hubHandles));
